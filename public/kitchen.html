@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kitchen Dashboard</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="logo">
+    <div class="logo-dot"></div>
+    Kitchen Dashboard
+  </div>
+  <div class="k-stats">
+    <div class="stat-pill">Pending: <strong id="pendingCount">0</strong></div>
+    <div class="stat-pill">Ready: <strong id="readyCount">0</strong></div>
+    <div class="stat-pill">Revenue: <strong id="totalRevenue">₹0</strong></div>
+  </div>
+</header>
+
+<div id="orders"></div>
+
+<script src="kitchen.js"></script>
+</body>
+</html>

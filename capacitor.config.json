@@ -1,0 +1,6 @@
+{
+  "appId": "com.smartcanteen.app",
+  "appName": "Smart Canteen",
+  "webDir": "public",
+  "bundledWebRuntime": false
+}

@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="logo">
+    <div class="logo-dot"></div>
+    Admin Dashboard
+  </div>
+  <div class="stat-pill">Smart Canteen</div>
+</header>
+
+<div style="max-width:1100px;margin:0 auto;padding:32px">
+
+  <!-- STAT CARDS -->
+  <div class="admin-grid">
+    <div class="admin-stat">
+      <div class="admin-stat-label">Total Orders</div>
+      <div class="admin-stat-val" id="totalOrders">—</div>
+      <div class="admin-stat-sub">all time</div>
+    </div>
+    <div class="admin-stat">
+      <div class="admin-stat-label">Total Revenue</div>
+      <div class="admin-stat-val" id="totalRev">—</div>
+      <div class="admin-stat-sub">all time</div>
+    </div>
+    <div class="admin-stat">
+      <div class="admin-stat-label">Avg Order Value</div>
+      <div class="admin-stat-val" id="avgOrder">—</div>
+      <div class="admin-stat-sub">per student</div>
+    </div>
+    <div class="admin-stat">
+      <div class="admin-stat-label">Most Popular</div>
+      <div class="admin-stat-val" id="popular">—</div>
+      <div class="admin-stat-sub">top item</div>
+    </div>
+  </div>
+
+  <!-- ORDERS TABLE -->
+  <div class="section-title">All Orders</div>
+  <table class="orders-table">
+    <thead>
+      <tr>
+        <th>Token</th>
+        <th>Items</th>
+        <th>Total</th>
+        <th>Time</th>
+        <th>Payment ID</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody id="ordersTableBody">
+      <tr>
+        <td colspan="6" style="text-align:center;color:#bbb;padding:32px">
+          Loading...
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+</div>
+
+<script src="admin.js"></script>
+</body>
+</html>

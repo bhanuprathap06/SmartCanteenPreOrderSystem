@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#111111">
+  <title>Smart Canteen</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="manifest" href="manifest.json">
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<header class="topbar">
+  <div class="logo">
+    <div class="logo-dot"></div>
+    Smart Canteen
+  </div>
+  <button class="cart-btn" onclick="toggleCart()">
+    🛒 Cart
+    <div class="cart-badge" id="cartCount">0</div>
+  </button>
+</header>
+
+<!-- TOAST -->
+<div id="toast" class="toast">✅ Item added to cart</div>
+
+<!-- HERO -->
+<section class="hero">
+  <h2>What are you craving today?</h2>
+  <p>Pre-order your food and skip the queue.</p>
+  <div class="wait-pill">Avg. wait time: <span>8 mins</span></div>
+</section>
+
+<!-- MENU -->
+<div class="menu">
+
+  <div class="item">
+    <img class="item-img" src="images/burger.jpg" alt="Burger">
+    <div class="item-body">
+      <span class="item-tag tag-best">Best Seller</span>
+      <div class="item-name">Burger</div>
+      <div class="item-desc">Crispy patty, fresh veggies, special sauce</div>
+      <div class="item-footer">
+        <span class="price">₹60</span>
+        <button onclick="addToCart('Burger', 60)">+ Add</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="item">
+    <img class="item-img" src="images/sandwich.jpg" alt="Sandwich">
+    <div class="item-body">
+      <span class="item-tag tag-veg">Veg</span>
+      <div class="item-name">Sandwich</div>
+      <div class="item-desc">Toasted bread, cheese, fresh vegetables</div>
+      <div class="item-footer">
+        <span class="price">₹40</span>
+        <button onclick="addToCart('Sandwich', 40)">+ Add</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="item">
+    <img class="item-img" src="images/coffee.jpg" alt="Coffee">
+    <div class="item-body">
+      <span class="item-tag tag-hot">Hot</span>
+      <div class="item-name">Coffee</div>
+      <div class="item-desc">Rich espresso blend, made fresh daily</div>
+      <div class="item-footer">
+        <span class="price">₹20</span>
+        <button onclick="addToCart('Coffee', 20)">+ Add</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- CART PANEL -->
+<div id="cartPanel" class="cartPanel">
+  <div class="cart-header">
+    <h2>Your Cart (<span id="cartCount2">0</span>)</h2>
+    <button class="close-x" onclick="toggleCart()">✕</button>
+  </div>
+
+  <div id="cartItems">
+    <div class="cart-empty">Your cart is empty</div>
+  </div>
+
+  <p class="cartTotal">Total: ₹<span id="cartTotal">0</span></p>
+
+  <button class="placeOrderBtn" onclick="placeOrder()">
+    Place Order →
+  </button>
+
+  <button class="closeCart" onclick="toggleCart()">
+    Continue Shopping
+  </button>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>

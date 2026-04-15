@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+<title>Smart Canteen</title>
+
+<link rel="stylesheet" href="style.css">
+
+</head>
+
+<body>
+
+<header>
+
+<h1 class="title">🚀 Smart Canteen</h1>
+<p>Pre-Order Food. Skip The Queue.</p>
+
+</header>
+
+<div class="cart">
+
+🛒 Cart: <span id="cartCount">0</span>
+
+</div>
+
+<h2 class="menuTitle">Menu</h2>
+
+<div id="menu"></div>
+
+<script src="script.js"></script>
+
+</body>
+
+</html>

@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ready Orders</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="logo">
+    <div class="logo-dot"></div>
+    Ready for Pickup
+  </div>
+  <div class="stat-pill">
+    Auto-refreshes every <strong>2 sec</strong>
+  </div>
+</header>
+
+<section class="hero">
+  <h2>Your order is ready!</h2>
+  <p>Collect at the counter when your token appears below.</p>
+</section>
+
+<div id="readyBoard"></div>
+
+<div id="emptyBoard" style="
+  text-align:center;
+  padding:80px 32px;
+  color:#bbb;
+  font-size:16px;
+  display:none;
+">
+  No orders ready yet — check back soon!
+</div>
+
+<div class="board-footer">
+  <p>Show your token number at the counter</p>
+</div>
+
+<script src="display.js"></script>
+</body>
+</html>
