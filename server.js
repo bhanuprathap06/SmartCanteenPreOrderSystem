@@ -5,7 +5,8 @@ const path = require("path")
 const cors = require("cors")
 
 const app = express()
-
+const PORT = process.env.PORT || 3000
+const MONGO_URI = process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/smartcanteen"
 app.use(cors())
 app.use(express.json())
 

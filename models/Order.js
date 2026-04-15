@@ -1,28 +1,14 @@
 const mongoose = require("mongoose")
 
-const orderSchema = new mongoose.Schema({
-
-  token: Number,
-
-  items: [String],
-
-  total: Number,
-
-  status: {
-    type: String,
-    default: "Preparing"
-  },
-
-  paymentId: {          // ← ADD THIS
-    type: String,
-    default: ""
-  },
-
-  createdAt: {
-    type: Date,
-    default: Date.now
-  }
-
+const OrderSchema = new mongoose.Schema({
+  token: { type: Number, required: true },
+  items: { type: Array, default: [] },
+  total: { type: Number, required: true },
+  paymentId: { type: String, default: "" },
+  razorpayOrderId: { type: String, default: "" },
+  razorpaySignature: { type: String, default: "" },
+  status: { type: String, default: "Preparing" },
+  createdAt: { type: Date, default: Date.now }
 })
 
-module.exports = mongoose.model("Order", orderSchema)
+module.exports = mongoose.model("Order", OrderSchema)
