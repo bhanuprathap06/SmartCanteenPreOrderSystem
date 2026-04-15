@@ -1,42 +1,42 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Ready Orders</title>
-  <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ready for Pickup — Smart Canteen</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 
+<!-- TOPBAR -->
 <header class="topbar">
-  <div class="logo">
+  <div class="topbar-logo">
     <div class="logo-dot"></div>
     Ready for Pickup
   </div>
   <div class="stat-pill">
-    Auto-refreshes every <strong>2 sec</strong>
+    🔄 Auto-refreshes every <strong>3 sec</strong>
   </div>
 </header>
 
-<section class="hero">
-  <h2>Your order is ready!</h2>
-  <p>Collect at the counter when your token appears below.</p>
-</section>
+<div class="display-wrap">
+  <div class="display-hero">
+    <h1>🔔 Your order is <span style="color:var(--accent)">ready!</span></h1>
+    <p>Collect at the counter when your token appears below.</p>
+  </div>
 
-<div id="readyBoard"></div>
+  <div id="ready-grid" class="ready-grid">
+    <!-- filled by JS -->
+  </div>
 
-<div id="emptyBoard" style="
-  text-align:center;
-  padding:80px 32px;
-  color:#bbb;
-  font-size:16px;
-  display:none;
-">
-  No orders ready yet — check back soon!
-</div>
+  <div id="empty-board" class="display-empty" style="display:none">
+    <div class="icon">⏳</div>
+    <p>No orders ready yet — hang tight!</p>
+  </div>
 
-<div class="board-footer">
-  <p>Show your token number at the counter</p>
+  <div class="display-footer">
+    Show your token number at the counter to collect your order.
+  </div>
 </div>
 
 <script src="display.js"></script>

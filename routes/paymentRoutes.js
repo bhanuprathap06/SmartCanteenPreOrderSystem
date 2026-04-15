@@ -1,48 +1,61 @@
-const express = require("express")
-const router = express.Router()
-const Razorpay = require("razorpay")
-const crypto = require("crypto")
+const express = require('express');
+const router = express.Router();
+const Razorpay = require('razorpay');
+const crypto = require('crypto');
 
 const razorpay = new Razorpay({
   key_id:     process.env.RAZORPAY_KEY_ID,
   key_secret: process.env.RAZORPAY_KEY_SECRET
-})
+});
 
-// Step 1: Create Razorpay order
-router.post("/create-razorpay-order", async (req, res) => {
+// POST /api/payment/create-order
+// Creates a Razorpay order and returns order details + key
+router.post('/create-order', async (req, res) => {
   try {
-    const { amount } = req.body // amount in rupees
+    const { amount } = req.body; // amount in rupees
 
     const options = {
-      amount: amount * 100,  // Razorpay uses paise
-      currency: "INR",
-      receipt: "receipt_" + Date.now()
-    }
+      amount:   Math.round(amount * 100), // convert to paise
+      currency: 'INR',
+      receipt:  'receipt_' + Date.now()
+    };
 
-    const order = await razorpay.orders.create(options)
-    res.json(order)
+    const order = await razorpay.orders.create(options);
+
+    res.json({
+      keyId:          process.env.RAZORPAY_KEY_ID,
+      amount:         order.amount,
+      razorpayOrderId: order.id
+    });
 
   } catch (err) {
-    console.error(err)
-    res.status(500).json({ error: "Failed to create order" })
+    console.error('Razorpay order error:', err);
+    res.status(500).json({ error: 'Failed to create payment order' });
   }
-})
+});
 
-// Step 2: Verify payment signature
-router.post("/verify-payment", (req, res) => {
-  const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body
+// POST /api/payment/verify
+// Verifies Razorpay payment signature
+router.post('/verify', (req, res) => {
+  const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
 
-  const body = razorpay_order_id + "|" + razorpay_payment_id
+  const body = razorpay_order_id + '|' + razorpay_payment_id;
+  const expectedSignature = crypto
+    .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET)
+    .update(body)
+    .digest('hex');
 
-const expectedSignature = crypto
-  .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
-  .update(body.toString())
-  .digest("hex")
   if (expectedSignature === razorpay_signature) {
-    res.json({ success: true })
+    res.json({ success: true });
   } else {
-    res.status(400).json({ success: false, error: "Invalid signature" })
+    res.status(400).json({ success: false, error: 'Invalid signature' });
   }
-})
+});
 
-module.exports = router
+// Legacy route aliases (backwards compat)
+router.post('/create-razorpay-order', async (req, res) => {
+  req.url = '/create-order';
+  router.handle(req, res);
+});
+
+module.exports = router;

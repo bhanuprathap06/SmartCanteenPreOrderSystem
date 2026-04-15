@@ -1,44 +1,50 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin Dashboard</title>
-  <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Dashboard — Smart Canteen</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 
+<!-- TOPBAR -->
 <header class="topbar">
-  <div class="logo">
+  <div class="topbar-logo">
     <div class="logo-dot"></div>
     Admin Dashboard
   </div>
-  <div class="stat-pill">Smart Canteen</div>
+  <a href="/" style="font-size:0.85rem;color:var(--text2);border:1px solid var(--border);border-radius:6px;padding:5px 12px;transition:color 0.2s" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--text2)'">
+    ← Menu
+  </a>
 </header>
 
-<div style="max-width:1100px;margin:0 auto;padding:32px">
+<!-- TOAST -->
+<div id="toast-container"></div>
+
+<div class="admin-wrap">
 
   <!-- STAT CARDS -->
-  <div class="admin-grid">
-    <div class="admin-stat">
-      <div class="admin-stat-label">Total Orders</div>
-      <div class="admin-stat-val" id="totalOrders">—</div>
-      <div class="admin-stat-sub">all time</div>
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-card-label">Total Orders</div>
+      <div class="stat-card-val" id="totalOrders">—</div>
+      <div class="stat-card-sub">all time</div>
     </div>
-    <div class="admin-stat">
-      <div class="admin-stat-label">Total Revenue</div>
-      <div class="admin-stat-val" id="totalRev">—</div>
-      <div class="admin-stat-sub">all time</div>
+    <div class="stat-card">
+      <div class="stat-card-label">Total Revenue</div>
+      <div class="stat-card-val" id="totalRev">—</div>
+      <div class="stat-card-sub">all time</div>
     </div>
-    <div class="admin-stat">
-      <div class="admin-stat-label">Avg Order Value</div>
-      <div class="admin-stat-val" id="avgOrder">—</div>
-      <div class="admin-stat-sub">per student</div>
+    <div class="stat-card">
+      <div class="stat-card-label">Avg Order Value</div>
+      <div class="stat-card-val" id="avgOrder">—</div>
+      <div class="stat-card-sub">per customer</div>
     </div>
-    <div class="admin-stat">
-      <div class="admin-stat-label">Most Popular</div>
-      <div class="admin-stat-val" id="popular">—</div>
-      <div class="admin-stat-sub">top item</div>
+    <div class="stat-card">
+      <div class="stat-card-label">Most Popular</div>
+      <div class="stat-card-val" id="popular" style="font-size:1.2rem">—</div>
+      <div class="stat-card-sub">top item</div>
     </div>
   </div>
 
@@ -48,17 +54,18 @@
     <thead>
       <tr>
         <th>Token</th>
+        <th>Customer</th>
         <th>Items</th>
         <th>Total</th>
         <th>Time</th>
-        <th>Payment ID</th>
+        <th>Payment</th>
         <th>Status</th>
       </tr>
     </thead>
     <tbody id="ordersTableBody">
       <tr>
-        <td colspan="6" style="text-align:center;color:#bbb;padding:32px">
-          Loading...
+        <td colspan="7" style="text-align:center;color:var(--text2);padding:40px">
+          <div class="spinner" style="display:inline-block"></div>
         </td>
       </tr>
     </tbody>

@@ -1,60 +1,64 @@
-const express = require("express")
-const router = express.Router()
-const Order = require("../models/Order")
+const express = require('express');
+const router = express.Router();
+const { orders, generateOrderId, generateToken } = require('../models/db');
 
-router.post("/", async (req, res) => {
-  console.log("Incoming order:", req.body)
+// GET all orders
+router.get('/', (req, res) => {
+  const { status } = req.query;
+  if (status) return res.json(orders.filter(o => o.status === status));
+  res.json(orders);
+});
 
-  try {
-    const lastOrder = await Order.findOne().sort({ token: -1 })
-    let tokenNumber = 1
-    if (lastOrder) tokenNumber = lastOrder.token + 1
+// GET single order
+router.get('/:id', (req, res) => {
+  const order = orders.find(o => o.id === req.params.id);
+  if (!order) return res.status(404).json({ error: 'Order not found' });
+  res.json(order);
+});
 
-    const order = new Order({
-      token: tokenNumber,
-      items: req.body.items || [],
-      total: req.body.total || 0,
-      paymentId: req.body.paymentId || req.body.razorpay_payment_id || "",
-      razorpayOrderId: req.body.razorpay_order_id || "",
-      razorpaySignature: req.body.razorpay_signature || "",
-      status: "Preparing",
-      createdAt: new Date()
-    })
+// POST create order
+router.post('/', (req, res) => {
+  const { items, customerName, pickupSlot, paymentMethod } = req.body;
+  if (!items || !items.length) return res.status(400).json({ error: 'No items in order' });
 
-    await order.save()
+  const total = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const order = {
+    id: generateOrderId(),
+    token: generateToken(),
+    customerName: customerName || 'Guest',
+    items,
+    total,
+    pickupSlot: pickupSlot || 'ASAP',
+    paymentMethod: paymentMethod || 'online',
+    paymentStatus: paymentMethod === 'cash' ? 'pending' : 'pending',
+    status: 'placed',
+    placedAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  };
 
-    console.log("Saved order:", order)
+  orders.unshift(order);
+  res.status(201).json(order);
+});
 
-    res.json({
-      success: true,
-      message: "Order placed successfully",
-      token: tokenNumber,
-      order
-    })
-  } catch (err) {
-    console.error("Order creation error:", err)
-    res.status(500).json({ error: "Server error" })
-  }
-})
+// PATCH update order status (kitchen)
+router.patch('/:id/status', (req, res) => {
+  const order = orders.find(o => o.id === req.params.id);
+  if (!order) return res.status(404).json({ error: 'Order not found' });
+  const { status } = req.body;
+  const validStatuses = ['placed', 'confirmed', 'preparing', 'ready', 'picked_up', 'cancelled'];
+  if (!validStatuses.includes(status)) return res.status(400).json({ error: 'Invalid status' });
+  order.status = status;
+  order.updatedAt = new Date().toISOString();
+  res.json(order);
+});
 
-router.get("/", async (req, res) => {
-  try {
-    const orders = await Order.find().sort({ createdAt: -1 })
-    res.json({ success: true, orders })
-  } catch (err) {
-    console.error("Fetch orders error:", err)
-    res.status(500).json({ error: "Server error" })
-  }
-})
+// DELETE cancel order
+router.delete('/:id', (req, res) => {
+  const order = orders.find(o => o.id === req.params.id);
+  if (!order) return res.status(404).json({ error: 'Order not found' });
+  order.status = 'cancelled';
+  order.updatedAt = new Date().toISOString();
+  res.json(order);
+});
 
-router.put("/:id", async (req, res) => {
-  try {
-    await Order.findByIdAndUpdate(req.params.id, { status: "Ready" })
-    res.json({ success: true, message: "Order marked ready" })
-  } catch (err) {
-    console.error("Update order error:", err)
-    res.status(500).json({ error: "Server error" })
-  }
-})
-
-module.exports = router
+module.exports = router;

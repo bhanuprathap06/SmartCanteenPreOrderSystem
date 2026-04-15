@@ -1,26 +1,47 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Kitchen Dashboard</title>
-  <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kitchen Dashboard — Smart Canteen</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 
+<!-- TOPBAR -->
 <header class="topbar">
-  <div class="logo">
+  <div class="topbar-logo">
     <div class="logo-dot"></div>
     Kitchen Dashboard
   </div>
-  <div class="k-stats">
-    <div class="stat-pill">Pending: <strong id="pendingCount">0</strong></div>
-    <div class="stat-pill">Ready: <strong id="readyCount">0</strong></div>
-    <div class="stat-pill">Revenue: <strong id="totalRevenue">₹0</strong></div>
+  <div class="stat-pills">
+    <div class="stat-pill pill-orange">Pending: <strong id="stat-placed">0</strong></div>
+    <div class="stat-pill pill-yellow">Preparing: <strong id="stat-preparing">0</strong></div>
+    <div class="stat-pill pill-green">Ready: <strong id="stat-ready">0</strong></div>
+    <div class="stat-pill pill-blue">Done: <strong id="stat-done">0</strong></div>
   </div>
 </header>
 
-<div id="orders"></div>
+<!-- TOAST -->
+<div id="toast-container"></div>
+
+<!-- KITCHEN CONTENT -->
+<div class="kitchen-wrap">
+  <div class="filter-row">
+    <button class="filter-btn active" data-filter="active" onclick="setFilter(this)">🔥 Active</button>
+    <button class="filter-btn" data-filter="placed" onclick="setFilter(this)">🆕 New</button>
+    <button class="filter-btn" data-filter="preparing" onclick="setFilter(this)">👨‍🍳 Preparing</button>
+    <button class="filter-btn" data-filter="ready" onclick="setFilter(this)">🔔 Ready</button>
+    <button class="filter-btn" data-filter="all" onclick="setFilter(this)">📋 All</button>
+  </div>
+
+  <div id="orders-grid">
+    <div class="empty-state">
+      <div class="spinner"></div>
+      <p style="margin-top:12px">Loading orders…</p>
+    </div>
+  </div>
+</div>
 
 <script src="kitchen.js"></script>
 </body>

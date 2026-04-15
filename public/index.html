@@ -1,102 +1,108 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#111111">
-  <title>Smart Canteen</title>
-  <link rel="stylesheet" href="style.css">
-  <link rel="manifest" href="manifest.json">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0d0d0d" />
+  <title>Smart Canteen — Pre-order your food</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="manifest" href="manifest.json" />
   <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 </head>
 <body>
 
-<!-- TOPBAR -->
-<header class="topbar">
-  <div class="logo">
-    <div class="logo-dot"></div>
-    Smart Canteen
+<!-- HEADER -->
+<header class="site-header">
+  <div class="header-inner">
+    <div class="logo">
+      <div class="logo-dot"></div>
+      Smart Canteen
+    </div>
+    <div class="header-right">
+      <div class="wait-badge">⏱ Avg wait: <strong>~8 min</strong></div>
+      <button class="cart-btn" onclick="toggleCart()">
+        🛒 Cart
+        <span class="cart-count" id="cart-count">0</span>
+      </button>
+    </div>
   </div>
-  <button class="cart-btn" onclick="toggleCart()">
-    🛒 Cart
-    <div class="cart-badge" id="cartCount">0</div>
-  </button>
 </header>
 
-<!-- TOAST -->
-<div id="toast" class="toast">✅ Item added to cart</div>
+<!-- TOAST CONTAINER -->
+<div id="toast-container"></div>
 
 <!-- HERO -->
 <section class="hero">
-  <h2>What are you craving today?</h2>
-  <p>Pre-order your food and skip the queue.</p>
-  <div class="wait-pill">Avg. wait time: <span>8 mins</span></div>
+  <h1 class="hero-title">What are you <span class="accent">craving</span> today?</h1>
+  <p class="hero-sub">Pre-order your food and skip the queue.</p>
 </section>
 
-<!-- MENU -->
-<div class="menu">
-
-  <div class="item">
-    <img class="item-img" src="images/burger.jpg" alt="Burger">
-    <div class="item-body">
-      <span class="item-tag tag-best">Best Seller</span>
-      <div class="item-name">Burger</div>
-      <div class="item-desc">Crispy patty, fresh veggies, special sauce</div>
-      <div class="item-footer">
-        <span class="price">₹60</span>
-        <button onclick="addToCart('Burger', 60)">+ Add</button>
-      </div>
-    </div>
+<!-- CATEGORY TABS -->
+<div class="category-wrap">
+  <div class="category-scroll" id="category-tabs">
+    <!-- built by JS -->
   </div>
-
-  <div class="item">
-    <img class="item-img" src="images/sandwich.jpg" alt="Sandwich">
-    <div class="item-body">
-      <span class="item-tag tag-veg">Veg</span>
-      <div class="item-name">Sandwich</div>
-      <div class="item-desc">Toasted bread, cheese, fresh vegetables</div>
-      <div class="item-footer">
-        <span class="price">₹40</span>
-        <button onclick="addToCart('Sandwich', 40)">+ Add</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="item">
-    <img class="item-img" src="images/coffee.jpg" alt="Coffee">
-    <div class="item-body">
-      <span class="item-tag tag-hot">Hot</span>
-      <div class="item-name">Coffee</div>
-      <div class="item-desc">Rich espresso blend, made fresh daily</div>
-      <div class="item-footer">
-        <span class="price">₹20</span>
-        <button onclick="addToCart('Coffee', 20)">+ Add</button>
-      </div>
-    </div>
-  </div>
-
 </div>
 
-<!-- CART PANEL -->
-<div id="cartPanel" class="cartPanel">
+<!-- MENU GRID -->
+<div class="menu-section">
+  <div id="menu-grid">
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p style="margin-top:12px;color:var(--text2)">Loading menu…</p>
+    </div>
+  </div>
+</div>
+
+<!-- CART OVERLAY -->
+<div class="cart-overlay" id="cart-overlay" onclick="toggleCart()"></div>
+
+<!-- CART DRAWER -->
+<aside class="cart-drawer" id="cart-drawer">
   <div class="cart-header">
-    <h2>Your Cart (<span id="cartCount2">0</span>)</h2>
-    <button class="close-x" onclick="toggleCart()">✕</button>
+    <h2>Your Order</h2>
+    <button class="close-btn" onclick="toggleCart()">✕</button>
   </div>
 
-  <div id="cartItems">
-    <div class="cart-empty">Your cart is empty</div>
+  <div class="cart-name-section">
+    <label for="customer-name">Your name (optional)</label>
+    <input type="text" id="customer-name" class="cart-name-input" placeholder="e.g. Rahul" />
   </div>
 
-  <p class="cartTotal">Total: ₹<span id="cartTotal">0</span></p>
+  <div class="cart-items" id="cart-items">
+    <div class="empty-cart">
+      <span>🛒</span>
+      <p>Your cart is empty</p>
+    </div>
+  </div>
 
-  <button class="placeOrderBtn" onclick="placeOrder()">
-    Place Order →
-  </button>
+  <div class="cart-footer" id="cart-footer" style="display:none">
+    <div class="cart-total-row">
+      <span class="cart-total-label">Total</span>
+      <span class="cart-total-amount">₹<span id="cart-total">0</span></span>
+    </div>
+    <button class="pay-online-btn" onclick="checkout()">
+      💳 Pay with Razorpay
+    </button>
+    <button class="pay-cash-btn" onclick="checkoutCash()">
+      💵 Pay at counter (Cash)
+    </button>
+  </div>
+</aside>
 
-  <button class="closeCart" onclick="toggleCart()">
-    Continue Shopping
-  </button>
+<!-- SUCCESS MODAL -->
+<div class="modal-overlay" id="success-modal" style="display:none">
+  <div class="modal">
+    <div class="success-icon">🎉</div>
+    <h2>Order Placed!</h2>
+    <p>Your token number is</p>
+    <div class="token-display">
+      <div class="token-label">Token Number</div>
+      <div class="token-number" id="success-token">#--</div>
+    </div>
+    <div id="success-details" style="font-size:0.85rem;color:var(--text2);line-height:1.8"></div>
+    <button class="modal-btn" onclick="closeSuccessModal()">Order More →</button>
+  </div>
 </div>
 
 <script src="script.js"></script>
