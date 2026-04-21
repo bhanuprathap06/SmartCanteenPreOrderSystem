@@ -18,7 +18,7 @@ router.get('/:id', (req, res) => {
 
 // POST create order
 router.post('/', (req, res) => {
-  const { items, customerName, pickupSlot, paymentMethod } = req.body;
+ const { items, customerName, pickupSlot, groupSize, paymentMethod } = req.body;
   if (!items || !items.length) return res.status(400).json({ error: 'No items in order' });
 
   const total = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
@@ -29,7 +29,8 @@ router.post('/', (req, res) => {
     items,
     total,
     pickupSlot: pickupSlot || 'ASAP',
-    paymentMethod: paymentMethod || 'online',
+groupSize: groupSize || 1,
+paymentMethod: paymentMethod || 'online',
     paymentStatus: paymentMethod === 'cash' ? 'pending' : 'pending',
     status: 'placed',
     placedAt: new Date().toISOString(),

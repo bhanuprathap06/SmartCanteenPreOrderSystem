@@ -5,8 +5,247 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Admin Dashboard — Smart Canteen</title>
   <link rel="stylesheet" href="style.css" />
+  <style>
+    /* ── PIN LOCK SCREEN ── */
+    #pin-screen {
+      position: fixed; inset: 0;
+      background: #0d0d0d;
+      z-index: 9999;
+      display: flex; align-items: center; justify-content: center;
+    }
+    #pin-screen.hidden { display: none; }
+    .pin-card {
+      background: #161616; border: 1px solid #2a2a2a;
+      border-radius: 20px; padding: 40px 36px 36px;
+      width: 340px; text-align: center;
+    }
+    .pin-icon  { font-size: 2.2rem; margin-bottom: 12px; }
+    .pin-title { font-size: 1.25rem; font-weight: 700; color: #fff; margin-bottom: 4px; }
+    .pin-subtitle { font-size: 0.82rem; color: #666; margin-bottom: 28px; }
+    .pin-dots { display: flex; justify-content: center; gap: 12px; margin-bottom: 28px; }
+    .pin-dot {
+      width: 14px; height: 14px; border-radius: 50%;
+      border: 2px solid #333; background: transparent;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .pin-dot.filled { background: #f97316; border-color: #f97316; }
+    .pin-dot.error  { background: #ef4444; border-color: #ef4444; animation: shake 0.4s ease; }
+    @keyframes shake {
+      0%,100%{ transform: translateX(0); }
+      20%    { transform: translateX(-5px); }
+      40%    { transform: translateX(5px); }
+      60%    { transform: translateX(-4px); }
+      80%    { transform: translateX(4px); }
+    }
+    .pin-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 16px; }
+    .pin-key {
+      background: #1e1e1e; border: 1px solid #2c2c2c; border-radius: 12px;
+      padding: 16px 0; font-size: 1.3rem; font-weight: 600; color: #e0e0e0;
+      cursor: pointer; transition: background 0.1s, transform 0.1s; user-select: none;
+    }
+    .pin-key:hover  { background: #262626; }
+    .pin-key:active { background: #f97316; color: #fff; transform: scale(0.95); }
+    .pin-error-msg { font-size: 0.78rem; color: #ef4444; min-height: 18px; margin-top: 4px; }
+    .pin-hint { font-size: 0.75rem; color: #444; margin-top: 14px; }
+    .pin-hint span { color: #f97316; }
+
+    /* ── TABS ── */
+    .admin-tabs {
+      display: flex; gap: 6px;
+      padding: 16px 24px 0;
+      border-bottom: 1px solid #1e1e1e;
+      margin-bottom: 24px;
+    }
+    .admin-tab {
+      background: none; border: none;
+      padding: 10px 18px; border-radius: 8px 8px 0 0;
+      font-size: 0.88rem; color: #666; cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: color 0.2s, border-color 0.2s;
+    }
+    .admin-tab.active { color: #f97316; border-bottom-color: #f97316; }
+    .admin-tab:hover  { color: #ccc; }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* ── MENU EDITOR ── */
+    .menu-editor-wrap { padding: 0 24px 40px; }
+    .menu-editor-header {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 20px;
+    }
+    .menu-editor-header h2 { font-size: 1.1rem; color: #fff; margin: 0; }
+    .add-item-btn {
+      background: #f97316; color: #fff; border: none;
+      border-radius: 10px; padding: 10px 20px;
+      font-size: 0.88rem; font-weight: 600; cursor: pointer;
+      transition: opacity 0.2s;
+    }
+    .add-item-btn:hover { opacity: 0.85; }
+
+    .menu-items-list { display: flex; flex-direction: column; gap: 10px; }
+    .menu-item-row {
+      display: flex; align-items: center; gap: 12px;
+      background: #161616; border: 1px solid #222;
+      border-radius: 12px; padding: 12px 16px;
+      transition: border-color 0.2s;
+    }
+    .menu-item-row:hover { border-color: #333; }
+    .menu-item-img {
+      width: 48px; height: 48px; border-radius: 8px;
+      object-fit: cover; background: #222; flex-shrink: 0;
+    }
+    .menu-item-img-placeholder {
+      width: 48px; height: 48px; border-radius: 8px;
+      background: #222; display: flex; align-items: center;
+      justify-content: center; font-size: 1.4rem; flex-shrink: 0;
+    }
+    .menu-item-info { flex: 1; min-width: 0; }
+    .menu-item-name { font-size: 0.95rem; font-weight: 600; color: #e0e0e0; }
+    .menu-item-meta { font-size: 0.78rem; color: #666; margin-top: 2px; }
+    .menu-item-price { font-size: 1rem; font-weight: 700; color: #f97316; flex-shrink: 0; }
+    .menu-item-actions { display: flex; gap: 8px; flex-shrink: 0; }
+    .item-action-btn {
+      background: #1e1e1e; border: 1px solid #2c2c2c; border-radius: 8px;
+      padding: 6px 12px; font-size: 0.78rem; color: #aaa; cursor: pointer;
+      transition: all 0.15s;
+    }
+    .item-action-btn:hover { background: #262626; color: #fff; }
+    .item-action-btn.danger:hover { background: #3a1a1a; border-color: #ef4444; color: #ef4444; }
+    .sold-out-toggle {
+      font-size: 0.72rem; padding: 4px 10px; border-radius: 20px;
+      cursor: pointer; border: none; font-weight: 600; transition: all 0.2s;
+    }
+    .sold-out-toggle.available { background: #16a34a22; color: #4ade80; }
+    .sold-out-toggle.soldout   { background: #ef444422; color: #ef4444; }
+
+    /* ── ITEM MODAL ── */
+    .item-modal-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.75);
+      z-index: 1000; display: none;
+      align-items: center; justify-content: center;
+    }
+    .item-modal-overlay.open { display: flex; }
+    .item-modal {
+      background: #161616; border: 1px solid #2a2a2a;
+      border-radius: 18px; padding: 28px;
+      width: min(460px, 94vw); max-height: 90vh; overflow-y: auto;
+    }
+    .item-modal h3 { font-size: 1.1rem; color: #fff; margin: 0 0 22px; }
+    .form-group { margin-bottom: 16px; }
+    .form-group label {
+      display: block; font-size: 0.78rem; color: #888;
+      margin-bottom: 6px; font-weight: 500; letter-spacing: 0.03em;
+    }
+    .form-input {
+      width: 100%; background: #0d0d0d; border: 1px solid #2a2a2a;
+      border-radius: 8px; padding: 10px 12px; color: #e0e0e0;
+      font-size: 0.9rem; box-sizing: border-box;
+      transition: border-color 0.2s;
+    }
+    .form-input:focus { outline: none; border-color: #f97316; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .form-actions { display: flex; gap: 10px; margin-top: 24px; justify-content: flex-end; }
+    .btn-save {
+      background: #f97316; color: #fff; border: none;
+      border-radius: 9px; padding: 10px 24px;
+      font-size: 0.88rem; font-weight: 600; cursor: pointer;
+    }
+    .btn-cancel {
+      background: none; border: 1px solid #333; color: #888;
+      border-radius: 9px; padding: 10px 20px;
+      font-size: 0.88rem; cursor: pointer;
+    }
+
+    /* ── ONBOARDING CHECKLIST ── */
+    .onboarding-wrap { padding: 0 24px 40px; }
+    .onboarding-wrap h2 { font-size: 1.1rem; color: #fff; margin: 0 0 6px; }
+    .onboarding-wrap p  { font-size: 0.85rem; color: #666; margin: 0 0 24px; }
+    .checklist { display: flex; flex-direction: column; gap: 12px; }
+    .check-item {
+      display: flex; align-items: flex-start; gap: 14px;
+      background: #161616; border: 1px solid #222;
+      border-radius: 14px; padding: 16px 18px;
+      transition: border-color 0.2s;
+    }
+    .check-item.done { border-color: #16a34a44; }
+    .check-circle {
+      width: 26px; height: 26px; border-radius: 50%; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.85rem; font-weight: 700; margin-top: 1px;
+    }
+    .check-circle.done { background: #16a34a22; color: #4ade80; }
+    .check-circle.todo { background: #222; color: #555; border: 1px solid #333; }
+    .check-body { flex: 1; }
+    .check-title { font-size: 0.92rem; font-weight: 600; color: #e0e0e0; margin-bottom: 3px; }
+    .check-desc  { font-size: 0.78rem; color: #666; line-height: 1.5; }
+    .check-action {
+      background: #f97316; color: #fff; border: none;
+      border-radius: 8px; padding: 7px 14px;
+      font-size: 0.78rem; font-weight: 600; cursor: pointer;
+      white-space: nowrap; margin-top: 10px;
+      display: inline-block;
+    }
+    .check-action.done-btn {
+      background: #16a34a22; color: #4ade80; cursor: default;
+    }
+
+    /* ── SETTINGS SECTION ── */
+    .settings-wrap { padding: 0 24px 40px; }
+    .settings-wrap h2 { font-size: 1.1rem; color: #fff; margin: 0 0 20px; }
+    .setting-row {
+      display: flex; align-items: center; justify-content: space-between;
+      background: #161616; border: 1px solid #222;
+      border-radius: 12px; padding: 16px 18px; margin-bottom: 10px;
+    }
+    .setting-label { font-size: 0.9rem; color: #ccc; }
+    .setting-desc  { font-size: 0.75rem; color: #555; margin-top: 2px; }
+    .pin-change-form { display: flex; gap: 8px; align-items: center; }
+    .pin-input-small {
+      background: #0d0d0d; border: 1px solid #2a2a2a;
+      border-radius: 8px; padding: 8px 12px; color: #e0e0e0;
+      font-size: 0.88rem; width: 90px; letter-spacing: 4px;
+    }
+    .pin-input-small:focus { outline: none; border-color: #f97316; }
+    .btn-small {
+      background: #f97316; color: #fff; border: none;
+      border-radius: 8px; padding: 8px 14px;
+      font-size: 0.8rem; font-weight: 600; cursor: pointer;
+    }
+  </style>
 </head>
 <body>
+
+<!-- ★ PIN LOCK SCREEN -->
+<div id="pin-screen">
+  <div class="pin-card">
+    <div class="pin-icon">🔐</div>
+    <div class="pin-title">Admin Access</div>
+    <div class="pin-subtitle">Enter your 4-digit owner PIN</div>
+    <div class="pin-dots">
+      <div class="pin-dot" id="d0"></div>
+      <div class="pin-dot" id="d1"></div>
+      <div class="pin-dot" id="d2"></div>
+      <div class="pin-dot" id="d3"></div>
+    </div>
+    <div class="pin-grid">
+      <button class="pin-key" onclick="pinPress('1')">1</button>
+      <button class="pin-key" onclick="pinPress('2')">2</button>
+      <button class="pin-key" onclick="pinPress('3')">3</button>
+      <button class="pin-key" onclick="pinPress('4')">4</button>
+      <button class="pin-key" onclick="pinPress('5')">5</button>
+      <button class="pin-key" onclick="pinPress('6')">6</button>
+      <button class="pin-key" onclick="pinPress('7')">7</button>
+      <button class="pin-key" onclick="pinPress('8')">8</button>
+      <button class="pin-key" onclick="pinPress('9')">9</button>
+      <button class="pin-key" onclick="pinClear()">⌫</button>
+      <button class="pin-key" onclick="pinPress('0')">0</button>
+      <button class="pin-key" onclick="pinReset()">✕</button>
+    </div>
+    <div class="pin-error-msg" id="pin-error"></div>
+    <div class="pin-hint">Default PIN: <span>1234</span></div>
+  </div>
+</div>
 
 <!-- TOPBAR -->
 <header class="topbar">
@@ -14,65 +253,574 @@
     <div class="logo-dot"></div>
     Admin Dashboard
   </div>
-  <a href="/" style="font-size:0.85rem;color:var(--text2);border:1px solid var(--border);border-radius:6px;padding:5px 12px;transition:color 0.2s" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--text2)'">
-    ← Menu
-  </a>
+  <div style="display:flex;gap:10px;align-items:center">
+    <a href="/" style="font-size:0.85rem;color:var(--text2);border:1px solid var(--border);border-radius:6px;padding:5px 12px;transition:color 0.2s;text-decoration:none"
+       onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--text2)'">← Menu</a>
+    <button onclick="lockAdmin()" style="background:none;border:1px solid #333;border-radius:6px;color:#888;padding:5px 12px;font-size:0.85rem;cursor:pointer;transition:color 0.2s,border-color 0.2s"
+            onmouseover="this.style.color='#f97316';this.style.borderColor='#f97316'"
+            onmouseout="this.style.color='#888';this.style.borderColor='#333'">🔒 Lock</button>
+  </div>
 </header>
 
 <!-- TOAST -->
 <div id="toast-container"></div>
 
-<div class="admin-wrap">
+<!-- ★ TABS -->
+<div class="admin-tabs">
+  <button class="admin-tab active" onclick="switchTab('orders')">📊 Orders</button>
+  <button class="admin-tab"        onclick="switchTab('menu')">🍽️ Menu Editor</button>
+  <button class="admin-tab"        onclick="switchTab('setup')">✅ Setup</button>
+  <button class="admin-tab"        onclick="switchTab('settings')">⚙️ Settings</button>
+</div>
 
-  <!-- STAT CARDS -->
-  <div class="stats-grid">
-    <div class="stat-card">
-      <div class="stat-card-label">Total Orders</div>
-      <div class="stat-card-val" id="totalOrders">—</div>
-      <div class="stat-card-sub">all time</div>
+<!-- TAB: ORDERS (original content) -->
+<div class="tab-panel active" id="tab-orders">
+  <div class="admin-wrap">
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-card-label">Total Orders</div>
+        <div class="stat-card-val" id="totalOrders">—</div>
+        <div class="stat-card-sub">all time</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card-label">Total Revenue</div>
+        <div class="stat-card-val" id="totalRev">—</div>
+        <div class="stat-card-sub">all time</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card-label">Avg Order Value</div>
+        <div class="stat-card-val" id="avgOrder">—</div>
+        <div class="stat-card-sub">per customer</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card-label">Most Popular</div>
+        <div class="stat-card-val" id="popular" style="font-size:1.2rem">—</div>
+        <div class="stat-card-sub">top item</div>
+      </div>
     </div>
-    <div class="stat-card">
-      <div class="stat-card-label">Total Revenue</div>
-      <div class="stat-card-val" id="totalRev">—</div>
-      <div class="stat-card-sub">all time</div>
+    <div class="section-title">All Orders</div>
+    <table class="orders-table">
+      <thead>
+        <tr>
+          <th>Token</th><th>Customer</th><th>Items</th>
+          <th>Total</th><th>Time</th><th>Payment</th><th>Status</th>
+        </tr>
+      </thead>
+      <tbody id="ordersTableBody">
+        <tr>
+          <td colspan="7" style="text-align:center;color:var(--text2);padding:40px">
+            <div class="spinner" style="display:inline-block"></div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- TAB: MENU EDITOR -->
+<div class="tab-panel" id="tab-menu">
+  <div class="menu-editor-wrap">
+    <div class="menu-editor-header">
+      <h2>🍽️ Menu Items</h2>
+      <button class="add-item-btn" onclick="openItemModal()">+ Add Item</button>
     </div>
-    <div class="stat-card">
-      <div class="stat-card-label">Avg Order Value</div>
-      <div class="stat-card-val" id="avgOrder">—</div>
-      <div class="stat-card-sub">per customer</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-card-label">Most Popular</div>
-      <div class="stat-card-val" id="popular" style="font-size:1.2rem">—</div>
-      <div class="stat-card-sub">top item</div>
+    <div class="menu-items-list" id="menu-items-list">
+      <div style="color:#555;text-align:center;padding:40px">
+        <div class="spinner" style="display:inline-block"></div>
+        <p style="margin-top:12px">Loading menu…</p>
+      </div>
     </div>
   </div>
+</div>
 
-  <!-- ORDERS TABLE -->
-  <div class="section-title">All Orders</div>
-  <table class="orders-table">
-    <thead>
-      <tr>
-        <th>Token</th>
-        <th>Customer</th>
-        <th>Items</th>
-        <th>Total</th>
-        <th>Time</th>
-        <th>Payment</th>
-        <th>Status</th>
-      </tr>
-    </thead>
-    <tbody id="ordersTableBody">
-      <tr>
-        <td colspan="7" style="text-align:center;color:var(--text2);padding:40px">
-          <div class="spinner" style="display:inline-block"></div>
-        </td>
-      </tr>
-    </tbody>
-  </table>
+<!-- TAB: SETUP CHECKLIST -->
+<div class="tab-panel" id="tab-setup">
+  <div class="onboarding-wrap">
+    <h2>✅ Canteen Setup Checklist</h2>
+    <p>Complete these steps to get your canteen live and ready to take orders.</p>
+    <div class="checklist" id="checklist">
+      <!-- injected by JS -->
+    </div>
+  </div>
+</div>
 
+<!-- TAB: SETTINGS -->
+<div class="tab-panel" id="tab-settings">
+  <div class="settings-wrap">
+    <h2>⚙️ Settings</h2>
+
+    <div class="setting-row">
+      <div>
+        <div class="setting-label">Admin PIN</div>
+        <div class="setting-desc">Used to protect this admin dashboard</div>
+      </div>
+      <div class="pin-change-form">
+        <input type="password" id="new-admin-pin" class="pin-input-small" maxlength="4" placeholder="New PIN" />
+        <button class="btn-small" onclick="changeAdminPIN()">Save</button>
+      </div>
+    </div>
+
+    <div class="setting-row">
+      <div>
+        <div class="setting-label">Kitchen PIN</div>
+        <div class="setting-desc">Used to protect the kitchen dashboard</div>
+      </div>
+      <div class="pin-change-form">
+        <input type="password" id="new-kitchen-pin" class="pin-input-small" maxlength="4" placeholder="New PIN" />
+        <button class="btn-small" onclick="changeKitchenPIN()">Save</button>
+      </div>
+    </div>
+
+    <div class="setting-row">
+      <div>
+        <div class="setting-label">Canteen Name</div>
+        <div class="setting-desc">Shown on the student ordering page header</div>
+      </div>
+      <div class="pin-change-form">
+        <input type="text" id="canteen-name-input" class="pin-input-small" style="width:150px;letter-spacing:0" placeholder="Name" />
+        <button class="btn-small" onclick="saveCanteenName()">Save</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ★ ADD/EDIT ITEM MODAL -->
+<div class="item-modal-overlay" id="item-modal-overlay">
+  <div class="item-modal">
+    <h3 id="modal-title">Add Menu Item</h3>
+    <input type="hidden" id="edit-item-id" />
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>Item Name *</label>
+        <input type="text" class="form-input" id="item-name" placeholder="e.g. Masala Burger" />
+      </div>
+      <div class="form-group">
+        <label>Category *</label>
+        <select class="form-input" id="item-category">
+          <option value="Snacks">Snacks</option>
+          <option value="Beverages">Beverages</option>
+          <option value="Meals">Meals</option>
+          <option value="Desserts">Desserts</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>Price (₹) *</label>
+        <input type="number" class="form-input" id="item-price" placeholder="e.g. 60" min="0" />
+      </div>
+      <div class="form-group">
+        <label>Prep Time (mins)</label>
+        <input type="number" class="form-input" id="item-prep" placeholder="e.g. 10" min="1" />
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Description</label>
+      <input type="text" class="form-input" id="item-desc" placeholder="Short description…" />
+    </div>
+
+    <div class="form-group">
+      <label>Image URL (optional)</label>
+      <input type="text" class="form-input" id="item-image" placeholder="./images/burger.jpeg" />
+    </div>
+
+    <div class="form-group">
+      <label>Available?</label>
+      <select class="form-input" id="item-available">
+        <option value="true">Yes — show on menu</option>
+        <option value="false">No — hide from menu (sold out)</option>
+      </select>
+    </div>
+
+    <div class="form-actions">
+      <button class="btn-cancel" onclick="closeItemModal()">Cancel</button>
+      <button class="btn-save"   onclick="saveItem()">Save Item</button>
+    </div>
+  </div>
 </div>
 
 <script src="admin.js"></script>
+<script>
+const CHECKLIST_STEPS = [
+  {
+    id:     'pin',
+    title:  'Change your default PIN',
+    desc:   'The default PIN is 1234. Go to Settings and set a private PIN so only you can access admin and kitchen.',
+    action: 'Go to Settings',
+    tab:    'settings'
+  },
+  {
+    id:     'menu',
+    title:  'Add your menu items',
+    desc:   'Click "Menu Editor" and add all the food items your canteen sells — name, price, category and prep time.',
+    action: 'Open Menu Editor',
+    tab:    'menu'
+  },
+  {
+    id:     'kitchen',
+    title:  'Open kitchen dashboard on a tablet',
+    desc:   'Open kitchen.html on the device near your stove. Use the kitchen PIN to log in. Orders will appear here in real time.',
+    action: 'Open Kitchen',
+    link:   '/kitchen.html'
+  },
+  {
+    id:     'display',
+    title:  'Set up the display board',
+    desc:   'Open display.html on a large screen or TV facing students. It will show token numbers when orders are ready.',
+    action: 'Open Display',
+    link:   '/display.html'
+  },
+  {
+    id:     'test',
+    title:  'Place a test order',
+    desc:   'Go to the main menu (index.html), add an item to cart and place a cash order to make sure everything flows correctly.',
+    action: 'Go to Menu',
+    link:   '/'
+  }
+];
+
+/* ══════════════════════════════════════════
+   PIN LOCK — Admin
+══════════════════════════════════════════ */
+const ADMIN_PIN_KEY   = 'sc_admin_pin';
+const KITCHEN_PIN_KEY = 'sc_kitchen_pin';
+let pinEntry = '';
+
+function getAdminPIN()   { return localStorage.getItem(ADMIN_PIN_KEY)   || '1234'; }
+function getKitchenPIN() { return localStorage.getItem(KITCHEN_PIN_KEY) || '1234'; }
+
+function pinPress(digit) {
+  if (pinEntry.length >= 4) return;
+  pinEntry += digit;
+  updatePinDots();
+  if (pinEntry.length === 4) setTimeout(checkPIN, 150);
+}
+function pinClear() {
+  pinEntry = pinEntry.slice(0, -1);
+  updatePinDots();
+  document.getElementById('pin-error').textContent = '';
+}
+function pinReset() {
+  pinEntry = '';
+  updatePinDots();
+  document.getElementById('pin-error').textContent = '';
+}
+function updatePinDots() {
+  for (let i = 0; i < 4; i++) {
+    const dot = document.getElementById('d' + i);
+    dot.classList.remove('filled', 'error');
+    if (i < pinEntry.length) dot.classList.add('filled');
+  }
+}
+function checkPIN() {
+  if (pinEntry === getAdminPIN()) {
+    document.getElementById('pin-screen').classList.add('hidden');
+    sessionStorage.setItem('sc_admin_unlocked', '1');
+    setTimeout(() => { renderChecklist(); loadMenuItems(); }, 0);
+  } else {
+    for (let i = 0; i < 4; i++) {
+      const dot = document.getElementById('d' + i);
+      dot.classList.remove('filled');
+      dot.classList.add('error');
+    }
+    document.getElementById('pin-error').textContent = 'Wrong PIN. Try again.';
+    setTimeout(() => { pinEntry = ''; updatePinDots(); }, 700);
+  }
+}
+function lockAdmin() {
+  sessionStorage.removeItem('sc_admin_unlocked');
+  pinEntry = '';
+  updatePinDots();
+  document.getElementById('pin-error').textContent = '';
+  document.getElementById('pin-screen').classList.remove('hidden');
+}
+document.addEventListener('keydown', (e) => {
+  if (document.getElementById('pin-screen').classList.contains('hidden')) return;
+  if (e.key >= '0' && e.key <= '9') pinPress(e.key);
+  if (e.key === 'Backspace') pinClear();
+  if (e.key === 'Escape')    pinReset();
+});
+// Defer until all JS is parsed so CHECKLIST_STEPS and loadMenuItems are defined
+window.addEventListener('DOMContentLoaded', () => {
+  if (sessionStorage.getItem('sc_admin_unlocked') === '1') {
+    document.getElementById('pin-screen').classList.add('hidden');
+    renderChecklist();
+    loadMenuItems();
+  }
+});
+
+/* ══════════════════════════════════════════
+   TAB SWITCHER
+══════════════════════════════════════════ */
+function switchTab(name) {
+  document.querySelectorAll('.admin-tab').forEach((t, i) => {
+    const names = ['orders','menu','setup','settings'];
+    t.classList.toggle('active', names[i] === name);
+  });
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+}
+
+/* ══════════════════════════════════════════
+   ★ MENU EDITOR
+   Items stored in localStorage as sc_menu_items
+   (array of objects). Your backend /api/foods
+   should ideally read from the same source,
+   or you can POST changes to the API here.
+══════════════════════════════════════════ */
+const MENU_KEY = 'sc_menu_items';
+
+function getMenuItems() {
+  return JSON.parse(localStorage.getItem(MENU_KEY) || '[]');
+}
+function saveMenuItems(items) {
+  localStorage.setItem(MENU_KEY, JSON.stringify(items));
+}
+
+function loadMenuItems() {
+  // Always render from localStorage immediately — no spinner hang
+  renderMenuItems();
+
+  // Then try to sync from API in the background (best-effort)
+  fetch('/api/foods')
+    .then(r => { if (!r.ok) throw new Error('no api'); return r.json(); })
+    .then(foods => {
+      if (foods && foods.length) {
+        saveMenuItems(foods);
+        renderMenuItems(); // re-render with fresh API data
+      }
+    })
+    .catch(() => { /* API not ready — localStorage is source of truth */ });
+}
+
+function renderMenuItems() {
+  const items = getMenuItems();
+  const list  = document.getElementById('menu-items-list');
+  const emojiMap = { Snacks: '🍔', Beverages: '☕', Meals: '🍛', Desserts: '🍮' };
+
+  if (!items.length) {
+    list.innerHTML = `
+      <div style="text-align:center;padding:60px;color:#555">
+        <div style="font-size:2rem;margin-bottom:12px">🍽️</div>
+        <p>No items yet. Click <strong style="color:#f97316">+ Add Item</strong> to get started.</p>
+      </div>`;
+    return;
+  }
+
+  list.innerHTML = items.map((item, idx) => {
+    const emoji   = emojiMap[item.category] || '🍽️';
+    const hasImg  = item.image && item.image !== '/images/icon.jpg';
+    const imgHTML = hasImg
+      ? `<img class="menu-item-img" src="${item.image}" alt="${item.name}" onerror="this.style.display='none'" />`
+      : `<div class="menu-item-img-placeholder">${emoji}</div>`;
+
+    return `
+      <div class="menu-item-row" id="menu-row-${idx}">
+        ${imgHTML}
+        <div class="menu-item-info">
+          <div class="menu-item-name">${item.name}</div>
+          <div class="menu-item-meta">${item.category} · ⏱ ${item.prepTime || 10} min</div>
+          ${item.description ? `<div class="menu-item-meta" style="margin-top:2px">${item.description}</div>` : ''}
+        </div>
+        <div class="menu-item-price">₹${item.price}</div>
+        <div class="menu-item-actions">
+          <button class="sold-out-toggle ${item.available !== false ? 'available' : 'soldout'}"
+                  onclick="toggleAvailable(${idx})">
+            ${item.available !== false ? '✅ Live' : '❌ Sold Out'}
+          </button>
+          <button class="item-action-btn" onclick="openItemModal(${idx})">✏️ Edit</button>
+          <button class="item-action-btn danger" onclick="deleteItem(${idx})">🗑️</button>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function toggleAvailable(idx) {
+  const items = getMenuItems();
+  items[idx].available = items[idx].available === false ? true : false;
+  saveMenuItems(items);
+  renderMenuItems();
+  pushMenuToAPI(items);
+  showAdminToast(items[idx].available ? '✅ Item is now live' : '❌ Marked as sold out', 'success');
+  updateChecklistStep('menu');
+}
+
+function deleteItem(idx) {
+  if (!confirm('Delete this item?')) return;
+  const items = getMenuItems();
+  items.splice(idx, 1);
+  saveMenuItems(items);
+  renderMenuItems();
+  pushMenuToAPI(items);
+  showAdminToast('Item deleted', 'info');
+}
+
+// ── ITEM MODAL ──
+let editingIdx = null;
+
+function openItemModal(idx) {
+  editingIdx = (idx !== undefined) ? idx : null;
+  const modal = document.getElementById('item-modal-overlay');
+  document.getElementById('modal-title').textContent = editingIdx !== null ? 'Edit Item' : 'Add Menu Item';
+
+  if (editingIdx !== null) {
+    const item = getMenuItems()[editingIdx];
+    document.getElementById('item-name').value      = item.name || '';
+    document.getElementById('item-category').value  = item.category || 'Snacks';
+    document.getElementById('item-price').value     = item.price || '';
+    document.getElementById('item-prep').value      = item.prepTime || '';
+    document.getElementById('item-desc').value      = item.description || '';
+    document.getElementById('item-image').value     = item.image || '';
+    document.getElementById('item-available').value = item.available === false ? 'false' : 'true';
+  } else {
+    document.getElementById('item-name').value      = '';
+    document.getElementById('item-category').value  = 'Snacks';
+    document.getElementById('item-price').value     = '';
+    document.getElementById('item-prep').value      = '';
+    document.getElementById('item-desc').value      = '';
+    document.getElementById('item-image').value     = '';
+    document.getElementById('item-available').value = 'true';
+  }
+  modal.classList.add('open');
+}
+
+function closeItemModal() {
+  document.getElementById('item-modal-overlay').classList.remove('open');
+  editingIdx = null;
+}
+
+function saveItem() {
+  const name  = document.getElementById('item-name').value.trim();
+  const price = parseFloat(document.getElementById('item-price').value);
+  if (!name)       { showAdminToast('Item name is required', 'error'); return; }
+  if (isNaN(price)){ showAdminToast('Enter a valid price', 'error'); return; }
+
+  const item = {
+    id:          editingIdx !== null ? getMenuItems()[editingIdx].id : 'item_' + Date.now(),
+    name,
+    category:    document.getElementById('item-category').value,
+    price,
+    prepTime:    parseInt(document.getElementById('item-prep').value) || 10,
+    description: document.getElementById('item-desc').value.trim(),
+    image:       document.getElementById('item-image').value.trim() || '/images/icon.jpg',
+    available:   document.getElementById('item-available').value === 'true'
+  };
+
+  const items = getMenuItems();
+  if (editingIdx !== null) items[editingIdx] = item;
+  else items.push(item);
+
+  saveMenuItems(items);
+  renderMenuItems();
+  pushMenuToAPI(items);
+  closeItemModal();
+  showAdminToast(editingIdx !== null ? '✅ Item updated' : '✅ Item added to menu', 'success');
+  updateChecklistStep('menu');
+}
+
+// Push updated menu to backend (best-effort — no crash if API not ready)
+async function pushMenuToAPI(items) {
+  try {
+    await fetch('/api/foods/bulk', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(items)
+    });
+  } catch (e) { /* API not ready yet — localStorage is the source of truth */ }
+}
+
+/* ══════════════════════════════════════════
+   ★ ONBOARDING CHECKLIST
+══════════════════════════════════════════ */
+/* CHECKLIST_STEPS moved to top */
+
+function getChecklistDone() {
+  return JSON.parse(localStorage.getItem('sc_checklist_done') || '[]');
+}
+function updateChecklistStep(stepId) {
+  const done = getChecklistDone();
+  if (!done.includes(stepId)) {
+    done.push(stepId);
+    localStorage.setItem('sc_checklist_done', JSON.stringify(done));
+    renderChecklist();
+  }
+}
+
+function renderChecklist() {
+  const container = document.getElementById('checklist');
+  if (!container) return;
+  const done = getChecklistDone();
+
+  container.innerHTML = CHECKLIST_STEPS.map(step => {
+    const isDone = done.includes(step.id);
+    const actionHTML = step.link
+      ? `<a href="${step.link}" target="_blank" class="check-action ${isDone ? 'done-btn' : ''}">${isDone ? '✓ Done' : step.action}</a>`
+      : `<button class="check-action ${isDone ? 'done-btn' : ''}" onclick="${isDone ? '' : `switchTab('${step.tab}')`}">${isDone ? '✓ Done' : step.action}</button>`;
+
+    return `
+      <div class="check-item ${isDone ? 'done' : ''}">
+        <div class="check-circle ${isDone ? 'done' : 'todo'}">${isDone ? '✓' : '○'}</div>
+        <div class="check-body">
+          <div class="check-title">${step.title}</div>
+          <div class="check-desc">${step.desc}</div>
+          ${actionHTML}
+        </div>
+      </div>`;
+  }).join('');
+}
+
+/* ══════════════════════════════════════════
+   ★ SETTINGS
+══════════════════════════════════════════ */
+function changeAdminPIN() {
+  const val = document.getElementById('new-admin-pin').value.trim();
+  if (val.length !== 4 || isNaN(val)) {
+    showAdminToast('PIN must be exactly 4 digits', 'error'); return;
+  }
+  localStorage.setItem(ADMIN_PIN_KEY, val);
+  document.getElementById('new-admin-pin').value = '';
+  showAdminToast('✅ Admin PIN updated', 'success');
+  updateChecklistStep('pin');
+}
+
+function changeKitchenPIN() {
+  const val = document.getElementById('new-kitchen-pin').value.trim();
+  if (val.length !== 4 || isNaN(val)) {
+    showAdminToast('PIN must be exactly 4 digits', 'error'); return;
+  }
+  localStorage.setItem(KITCHEN_PIN_KEY, val);
+  document.getElementById('new-kitchen-pin').value = '';
+  showAdminToast('✅ Kitchen PIN updated', 'success');
+}
+
+function saveCanteenName() {
+  const val = document.getElementById('canteen-name-input').value.trim();
+  if (!val) { showAdminToast('Enter a canteen name', 'error'); return; }
+  localStorage.setItem('sc_canteen_name', val);
+  showAdminToast('✅ Canteen name saved', 'success');
+}
+
+// Pre-fill current values in settings
+window.addEventListener('DOMContentLoaded', () => {
+  const nameInput = document.getElementById('canteen-name-input');
+  if (nameInput) nameInput.value = localStorage.getItem('sc_canteen_name') || '';
+});
+
+/* ── Toast helper for admin ── */
+function showAdminToast(msg, type = 'info') {
+  if (typeof showToast === 'function') { showToast(msg, type); return; }
+  const icons = { success: '✅', error: '❌', info: 'ℹ️' };
+  const toast = document.createElement('div');
+  toast.className = `toast toast-${type}`;
+  toast.innerHTML = `<span>${icons[type]}</span><span>${msg}</span>`;
+  document.getElementById('toast-container').appendChild(toast);
+  setTimeout(() => toast.remove(), 3500);
+}
+</script>
+
 </body>
 </html>

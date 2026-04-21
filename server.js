@@ -1,13 +1,19 @@
+const dotenv = require('dotenv');
+dotenv.config({ path: './.env' });
+console.log("SERVER ENV:", process.env.RAZORPAY_KEY_ID);
+console.log("SERVER SECRET:", process.env.RAZORPAY_KEY_SECRET);
+
 const express = require('express');
+const app = express();
 const path = require('path');
 const cors = require('cors');
-require('dotenv').config();
+
 
 const foodRoutes = require('./routes/foodRoutes');
 const orderRoutes = require('./routes/orderRoutes');
 const paymentRoutes = require('./routes/paymentRoutes');
 
-const app = express();
+
 
 app.use(cors());
 app.use(express.json());

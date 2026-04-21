@@ -8,7 +8,7 @@ let foods = [
     category: 'Snacks',
     description: 'Crispy patty, fresh veggies & special house sauce',
     price: 60,
-    image: '/images/burger.jpg',
+    image: '/images/burger.jpeg',
     available: true,
     prepTime: 10
   },
@@ -18,7 +18,7 @@ let foods = [
     category: 'Snacks',
     description: 'Toasted bread, cheese, fresh vegetables & mayo',
     price: 45,
-    image: '/images/sandwich.jpg',
+    image: '/images/sandwich1.jpeg',
     available: true,
     prepTime: 8
   },
@@ -28,7 +28,7 @@ let foods = [
     category: 'Beverages',
     description: 'Rich South Indian filter coffee, freshly brewed',
     price: 20,
-    image: '/images/coffee.jpg',
+    image: '/images/coffee1.jpeg',
     available: true,
     prepTime: 5
   },
@@ -38,7 +38,7 @@ let foods = [
     category: 'Meals',
     description: 'Aromatic basmati rice with tender chicken pieces',
     price: 120,
-    image: '/images/icon.jpg',
+    image: '/images/biryani.jpeg',
     available: true,
     prepTime: 15
   },
@@ -48,7 +48,7 @@ let foods = [
     category: 'Meals',
     description: 'Fragrant rice with seasonal vegetables & spices',
     price: 90,
-    image: '/images/icon.jpg',
+    image: '/images/vegbiryani.jpeg',
     available: true,
     prepTime: 12
   },
@@ -58,7 +58,7 @@ let foods = [
     category: 'Beverages',
     description: 'Fresh lime juice with mint, served cold',
     price: 25,
-    image: '/images/coffee.jpg',
+    image: '/images/lemonjuice.jpeg',
     available: true,
     prepTime: 3
   }

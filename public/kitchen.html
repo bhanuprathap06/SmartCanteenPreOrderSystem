@@ -5,8 +5,144 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Kitchen Dashboard — Smart Canteen</title>
   <link rel="stylesheet" href="style.css" />
+  <style>
+    /* ── PIN LOCK SCREEN ── */
+    #pin-screen {
+      position: fixed;
+      inset: 0;
+      background: #0d0d0d;
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 0;
+    }
+    #pin-screen.hidden { display: none; }
+
+    .pin-card {
+      background: #161616;
+      border: 1px solid #2a2a2a;
+      border-radius: 20px;
+      padding: 40px 36px 36px;
+      width: 340px;
+      text-align: center;
+    }
+    .pin-icon {
+      font-size: 2.2rem;
+      margin-bottom: 12px;
+    }
+    .pin-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 4px;
+    }
+    .pin-subtitle {
+      font-size: 0.82rem;
+      color: #666;
+      margin-bottom: 28px;
+    }
+    .pin-dots {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      margin-bottom: 28px;
+    }
+    .pin-dot {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      border: 2px solid #333;
+      background: transparent;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .pin-dot.filled {
+      background: #f97316;
+      border-color: #f97316;
+    }
+    .pin-dot.error {
+      background: #ef4444;
+      border-color: #ef4444;
+      animation: shake 0.4s ease;
+    }
+    @keyframes shake {
+      0%,100%{ transform: translateX(0); }
+      20%    { transform: translateX(-5px); }
+      40%    { transform: translateX(5px); }
+      60%    { transform: translateX(-4px); }
+      80%    { transform: translateX(4px); }
+    }
+    .pin-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    .pin-key {
+      background: #1e1e1e;
+      border: 1px solid #2c2c2c;
+      border-radius: 12px;
+      padding: 16px 0;
+      font-size: 1.3rem;
+      font-weight: 600;
+      color: #e0e0e0;
+      cursor: pointer;
+      transition: background 0.1s, transform 0.1s;
+      user-select: none;
+    }
+    .pin-key:hover  { background: #262626; }
+    .pin-key:active { background: #f97316; color: #fff; transform: scale(0.95); }
+    .pin-key.wide   { grid-column: span 2; }
+    .pin-error-msg {
+      font-size: 0.78rem;
+      color: #ef4444;
+      min-height: 18px;
+      margin-top: 4px;
+    }
+    .pin-hint {
+      font-size: 0.75rem;
+      color: #444;
+      margin-top: 14px;
+    }
+    .pin-hint span { color: #f97316; }
+  </style>
 </head>
 <body>
+
+<!-- ★ PIN LOCK SCREEN -->
+<div id="pin-screen">
+  <div class="pin-card">
+    <div class="pin-icon">👨‍🍳</div>
+    <div class="pin-title">Kitchen Access</div>
+    <div class="pin-subtitle">Enter your 4-digit PIN to continue</div>
+
+    <div class="pin-dots">
+      <div class="pin-dot" id="d0"></div>
+      <div class="pin-dot" id="d1"></div>
+      <div class="pin-dot" id="d2"></div>
+      <div class="pin-dot" id="d3"></div>
+    </div>
+
+    <div class="pin-grid">
+      <button class="pin-key" onclick="pinPress('1')">1</button>
+      <button class="pin-key" onclick="pinPress('2')">2</button>
+      <button class="pin-key" onclick="pinPress('3')">3</button>
+      <button class="pin-key" onclick="pinPress('4')">4</button>
+      <button class="pin-key" onclick="pinPress('5')">5</button>
+      <button class="pin-key" onclick="pinPress('6')">6</button>
+      <button class="pin-key" onclick="pinPress('7')">7</button>
+      <button class="pin-key" onclick="pinPress('8')">8</button>
+      <button class="pin-key" onclick="pinPress('9')">9</button>
+      <button class="pin-key" onclick="pinClear()">⌫</button>
+      <button class="pin-key" onclick="pinPress('0')">0</button>
+      <button class="pin-key" onclick="pinReset()">✕</button>
+    </div>
+
+    <div class="pin-error-msg" id="pin-error"></div>
+    <div class="pin-hint">Default PIN: <span>1234</span> — change in Admin</div>
+  </div>
+</div>
 
 <!-- TOPBAR -->
 <header class="topbar">
@@ -20,6 +156,15 @@
     <div class="stat-pill pill-green">Ready: <strong id="stat-ready">0</strong></div>
     <div class="stat-pill pill-blue">Done: <strong id="stat-done">0</strong></div>
   </div>
+  <!-- ★ Lock button -->
+  <button onclick="lockKitchen()" style="
+    background:none;border:1px solid #333;border-radius:8px;
+    color:#888;padding:6px 14px;font-size:0.8rem;cursor:pointer;
+    transition:color 0.2s,border-color 0.2s;
+  " onmouseover="this.style.color='#f97316';this.style.borderColor='#f97316'"
+     onmouseout="this.style.color='#888';this.style.borderColor='#333'">
+    🔒 Lock
+  </button>
 </header>
 
 <!-- TOAST -->
@@ -28,11 +173,11 @@
 <!-- KITCHEN CONTENT -->
 <div class="kitchen-wrap">
   <div class="filter-row">
-    <button class="filter-btn active" data-filter="active" onclick="setFilter(this)">🔥 Active</button>
-    <button class="filter-btn" data-filter="placed" onclick="setFilter(this)">🆕 New</button>
-    <button class="filter-btn" data-filter="preparing" onclick="setFilter(this)">👨‍🍳 Preparing</button>
-    <button class="filter-btn" data-filter="ready" onclick="setFilter(this)">🔔 Ready</button>
-    <button class="filter-btn" data-filter="all" onclick="setFilter(this)">📋 All</button>
+    <button class="filter-btn active" data-filter="active"    onclick="setFilter(this)">🔥 Active</button>
+    <button class="filter-btn"        data-filter="placed"    onclick="setFilter(this)">🆕 New</button>
+    <button class="filter-btn"        data-filter="preparing" onclick="setFilter(this)">👨‍🍳 Preparing</button>
+    <button class="filter-btn"        data-filter="ready"     onclick="setFilter(this)">🔔 Ready</button>
+    <button class="filter-btn"        data-filter="all"       onclick="setFilter(this)">📋 All</button>
   </div>
 
   <div id="orders-grid">
@@ -44,5 +189,90 @@
 </div>
 
 <script src="kitchen.js"></script>
+<script>
+/* ══════════════════════════════════════════
+   PIN LOCK — Kitchen
+   Default PIN: 1234
+   Owner can change via Admin dashboard.
+   Session stays unlocked until page closes
+   or Lock button is pressed.
+══════════════════════════════════════════ */
+let pinEntry = '';
+const KITCHEN_PIN_KEY = 'sc_kitchen_pin';
+
+function getKitchenPIN() {
+  return localStorage.getItem(KITCHEN_PIN_KEY) || '1234';
+}
+
+function pinPress(digit) {
+  if (pinEntry.length >= 4) return;
+  pinEntry += digit;
+  updatePinDots();
+  if (pinEntry.length === 4) {
+    setTimeout(checkPIN, 150); // small delay so last dot fills visually
+  }
+}
+
+function pinClear() {
+  pinEntry = pinEntry.slice(0, -1);
+  updatePinDots();
+  document.getElementById('pin-error').textContent = '';
+}
+
+function pinReset() {
+  pinEntry = '';
+  updatePinDots();
+  document.getElementById('pin-error').textContent = '';
+}
+
+function updatePinDots() {
+  for (let i = 0; i < 4; i++) {
+    const dot = document.getElementById('d' + i);
+    dot.classList.remove('filled', 'error');
+    if (i < pinEntry.length) dot.classList.add('filled');
+  }
+}
+
+function checkPIN() {
+  if (pinEntry === getKitchenPIN()) {
+    document.getElementById('pin-screen').classList.add('hidden');
+    sessionStorage.setItem('sc_kitchen_unlocked', '1');
+  } else {
+    // Shake all dots red
+    for (let i = 0; i < 4; i++) {
+      const dot = document.getElementById('d' + i);
+      dot.classList.remove('filled');
+      dot.classList.add('error');
+    }
+    document.getElementById('pin-error').textContent = 'Wrong PIN. Try again.';
+    setTimeout(() => {
+      pinEntry = '';
+      updatePinDots();
+    }, 700);
+  }
+}
+
+function lockKitchen() {
+  sessionStorage.removeItem('sc_kitchen_unlocked');
+  pinEntry = '';
+  updatePinDots();
+  document.getElementById('pin-error').textContent = '';
+  document.getElementById('pin-screen').classList.remove('hidden');
+}
+
+// On load: if already unlocked this session, skip PIN screen
+if (sessionStorage.getItem('sc_kitchen_unlocked') === '1') {
+  document.getElementById('pin-screen').classList.add('hidden');
+}
+
+// Keyboard support
+document.addEventListener('keydown', (e) => {
+  if (document.getElementById('pin-screen').classList.contains('hidden')) return;
+  if (e.key >= '0' && e.key <= '9') pinPress(e.key);
+  if (e.key === 'Backspace') pinClear();
+  if (e.key === 'Escape') pinReset();
+});
+</script>
+
 </body>
 </html>
